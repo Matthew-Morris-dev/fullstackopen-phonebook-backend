@@ -48,6 +48,18 @@ app.get("/api/persons/:id", (req, res) => {
     }
 });
 
+app.delete("/api/persons/:id", (req, res) => {
+    const id = Number(req.params.id);
+    const person = persons.find((person) => person.id === id);
+    console.log(person);
+    if (person) {
+        persons = persons.map((person) => person.id !== id);
+        res.sendStatus(204);
+    } else {
+        res.sendStatus(404);
+    }
+});
+
 PORT = 3001;
 app.listen(PORT, () => {
     console.log(`Server listening on port ${PORT}`);
