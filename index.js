@@ -46,6 +46,19 @@ const generateId = () => {
 
 app.post("/api/persons", (req, res) => {
     const person = req.body;
+    if (person.name === null || person.name === undefined) {
+        res.status(400).send({ error: `data must contain the field 'name'` });
+        return;
+    }
+    if (person.number === null || person.number === undefined) {
+        res.status(400).send({ error: `data must contain the field 'number'` });
+        return;
+    }
+    if (persons.some((existingPerson) => existingPerson.name === person.name)) {
+        res.status(400).send({ error: `A person with the name ${person.name} already exists.` });
+        return;
+    }
+
     person.id = generateId();
 
     persons = persons.concat(person);
