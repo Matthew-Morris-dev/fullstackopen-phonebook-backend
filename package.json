@@ -1,0 +1,26 @@
+{
+  "name": "phonebook-backend",
+  "version": "0.0.1",
+  "description": "Node server for phonebook application from part2 of fullstackopen course",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Matthew-Morris-dev/fullstackopen-phonebook-backend.git"
+  },
+  "author": "Matthew Morris",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Matthew-Morris-dev/fullstackopen-phonebook-backend/issues"
+  },
+  "homepage": "https://github.com/Matthew-Morris-dev/fullstackopen-phonebook-backend#readme",
+  "dependencies": {
+    "express": "^4.17.1"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.7"
+  }
+}
