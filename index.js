@@ -24,6 +24,16 @@ let persons = [
     }
 ];
 
+app.get("/info", (req, res) => {
+    const timeNow = new Date();
+    res.send(`
+    <div>
+        <h4>Phonebook has info for ${persons.length} people</h4>
+        <h4>${timeNow}</h4>
+    </div>
+    `);
+});
+
 app.get("/api/persons", (req, res) => {
     res.json(persons);
 });
