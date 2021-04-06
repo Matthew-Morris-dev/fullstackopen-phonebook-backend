@@ -5,9 +5,12 @@ const app = express();
 
 app.use(cors());
 app.use(express.json());
+app.use(express.static("build"));
+
 morgan.token("custom", function (req, res) {
     return JSON.stringify(req.body);
 });
+
 app.use(morgan(":method :url :status :res[content-length] - :response-time ms :custom"));
 
 let persons = [
