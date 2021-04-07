@@ -15,28 +15,18 @@ morgan.token("custom", function (req, res) {
 
 app.use(morgan(":method :url :status :res[content-length] - :response-time ms :custom"));
 
-let persons = [
-    {
-        name: "Arto Hellas",
-        number: "040-123456",
-        id: 1
-    },
-    {
-        name: "Ada Lovelace",
-        number: "39-44-5323523",
-        id: 2
-    },
-    {
-        name: "Dan Abramov",
-        number: "12-43-234345",
-        id: 3
-    },
-    {
-        name: "Mary Poppendieck",
-        number: "39-23-6423122",
-        id: 4
+const errorHandler = (error, request, response, next) => {
+    console.error(error.message);
+
+    if (error.name === "CastError") {
+        return response.status(400).send({ error: "malformatted id" });
     }
-];
+
+    next(error);
+};
+
+// this has to be the last loaded middleware.
+app.use(errorHandler);
 
 // app.get("/info", (req, res) => {
 //     const timeNow = new Date();
@@ -70,33 +60,38 @@ app.post("/api/persons", (req, res) => {
         number: body.number
     });
 
-    person.save().then((savedPerson) => {
-        res.json(savedPerson);
-    });
+    person
+        .save()
+        .then((savedPerson) => {
+            res.json(savedPerson);
+        })
+        .catch((error) => {
+            next(error);
+        });
 });
 
 app.get("/api/persons/:id", (req, res) => {
-    Person.findById(req.params.id).then((person) => {
-        res.json(person);
-    });
+    Person.findById(req.params.id)
+        .then((person) => {
+            res.json(person);
+        })
+        .catch((error) => {
+            next(error);
+        });
 });
 
 app.delete("/api/persons/:id", (req, res) => {
-    Person.findByIdAndDelete(req.params.id).then((deletedPerson) => {
-        if (deletedPerson) {
-            res.sendStatus(204);
-        } else {
-            res.sendStatus(404);
-        }
-    });
-    // const person = persons.find((person) => person.id === id);
-    // console.log(person);
-    // if (person) {
-    //     persons = persons.map((person) => person.id !== id);
-    //     res.sendStatus(204);
-    // } else {
-    //     res.sendStatus(404);
-    // }
+    Person.findByIdAndDelete(req.params.id)
+        .then((deletedPerson) => {
+            if (deletedPerson) {
+                res.sendStatus(204);
+            } else {
+                res.sendStatus(404);
+            }
+        })
+        .catch((error) => {
+            next(error);
+        });
 });
 
 PORT = process.env.PORT;
