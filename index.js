@@ -9,7 +9,7 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static("build"));
 
-morgan.token("custom", function (req, res) {
+morgan.token("custom", function (req) {
     return JSON.stringify(req.body);
 });
 
@@ -17,7 +17,7 @@ app.use(morgan(":method :url :status :res[content-length] - :response-time ms :c
 
 app.get("/info", (req, res) => {
     const timeNow = new Date();
-    const numberOfPersons = Person.estimatedDocumentCount().then((count) => {
+    Person.estimatedDocumentCount().then((count) => {
         res.send(`
         <div>
             <h4>Phonebook has info for ${count} people</h4>
@@ -109,7 +109,7 @@ const errorHandler = (error, req, res, next) => {
 // this has to be the last loaded middleware.
 app.use(errorHandler);
 
-PORT = process.env.PORT;
+const PORT = process.env.PORT;
 app.listen(PORT, () => {
     console.log(`Server listening on port ${PORT}`);
 });
