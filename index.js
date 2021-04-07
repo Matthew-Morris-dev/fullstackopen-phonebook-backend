@@ -2,6 +2,8 @@ const express = require("express");
 const morgan = require("morgan");
 const cors = require("cors");
 const app = express();
+require("dotenv").config();
+const Person = require("./models/person");
 
 app.use(cors());
 app.use(express.json());
@@ -36,69 +38,68 @@ let persons = [
     }
 ];
 
-app.get("/info", (req, res) => {
-    const timeNow = new Date();
-    res.send(`
-    <div>
-        <h4>Phonebook has info for ${persons.length} people</h4>
-        <h4>${timeNow}</h4>
-    </div>
-    `);
-});
+// app.get("/info", (req, res) => {
+//     const timeNow = new Date();
+//     res.send(`
+//     <div>
+//         <h4>Phonebook has info for ${persons.length} people</h4>
+//         <h4>${timeNow}</h4>
+//     </div>
+//     `);
+// });
 
 app.get("/api/persons", (req, res) => {
-    res.json(persons);
+    Person.find({}).then((persons) => {
+        res.json(persons);
+    });
 });
 
-const generateId = () => {
-    return Math.ceil(Math.random() * 1000);
-};
-
 app.post("/api/persons", (req, res) => {
-    const person = req.body;
-    if (person.name === null || person.name === undefined) {
+    const body = req.body;
+    if (body.name === null || body.name === undefined) {
         res.status(400).send({ error: `data must contain the field 'name'` });
         return;
     }
-    if (person.number === null || person.number === undefined) {
+    if (body.number === null || body.number === undefined) {
         res.status(400).send({ error: `data must contain the field 'number'` });
         return;
     }
-    if (persons.some((existingPerson) => existingPerson.name === person.name)) {
-        res.status(400).send({ error: `A person with the name ${person.name} already exists.` });
-        return;
-    }
 
-    person.id = generateId();
+    const person = new Person({
+        name: body.name,
+        number: body.number
+    });
 
-    persons = persons.concat(person);
-
-    res.status(201).json(person);
+    person.save().then((savedPerson) => {
+        res.json(savedPerson);
+    });
 });
 
 app.get("/api/persons/:id", (req, res) => {
-    const id = Number(req.params.id);
-    const person = persons.find((person) => person.id === id);
-    if (person) {
+    Person.findById(req.params.id).then((person) => {
         res.json(person);
-    } else {
-        res.sendStatus(404);
-    }
+    });
 });
 
 app.delete("/api/persons/:id", (req, res) => {
-    const id = Number(req.params.id);
-    const person = persons.find((person) => person.id === id);
-    console.log(person);
-    if (person) {
-        persons = persons.map((person) => person.id !== id);
-        res.sendStatus(204);
-    } else {
-        res.sendStatus(404);
-    }
+    Person.findByIdAndDelete(req.params.id).then((deletedPerson) => {
+        if (deletedPerson) {
+            res.sendStatus(204);
+        } else {
+            res.sendStatus(404);
+        }
+    });
+    // const person = persons.find((person) => person.id === id);
+    // console.log(person);
+    // if (person) {
+    //     persons = persons.map((person) => person.id !== id);
+    //     res.sendStatus(204);
+    // } else {
+    //     res.sendStatus(404);
+    // }
 });
 
-PORT = process.env.PORT || 3001;
+PORT = process.env.PORT;
 app.listen(PORT, () => {
     console.log(`Server listening on port ${PORT}`);
 });
