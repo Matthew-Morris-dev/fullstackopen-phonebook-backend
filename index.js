@@ -28,15 +28,17 @@ const errorHandler = (error, request, response, next) => {
 // this has to be the last loaded middleware.
 app.use(errorHandler);
 
-// app.get("/info", (req, res) => {
-//     const timeNow = new Date();
-//     res.send(`
-//     <div>
-//         <h4>Phonebook has info for ${persons.length} people</h4>
-//         <h4>${timeNow}</h4>
-//     </div>
-//     `);
-// });
+app.get("/info", (req, res) => {
+    const timeNow = new Date();
+    const numberOfPersons = Person.estimatedDocumentCount().then((count) => {
+        res.send(`
+        <div>
+            <h4>Phonebook has info for ${count} people</h4>
+            <h4>${timeNow}</h4>
+        </div>
+        `);
+    });
+});
 
 app.get("/api/persons", (req, res) => {
     Person.find({}).then((persons) => {
@@ -48,11 +50,9 @@ app.post("/api/persons", (req, res) => {
     const body = req.body;
     if (body.name === null || body.name === undefined) {
         res.status(400).send({ error: `data must contain the field 'name'` });
-        return;
     }
     if (body.number === null || body.number === undefined) {
         res.status(400).send({ error: `data must contain the field 'number'` });
-        return;
     }
 
     const person = new Person({
@@ -78,6 +78,14 @@ app.get("/api/persons/:id", (req, res) => {
         .catch((error) => {
             next(error);
         });
+});
+
+app.put("/api/persons/:id", (req, res) => {
+    Person.findByIdAndUpdate(req.params.id, { number: req.body.number }, { new: true })
+        .then((updatedPerson) => {
+            res.json(updatedPerson);
+        })
+        .catch((error) => next(error));
 });
 
 app.delete("/api/persons/:id", (req, res) => {
