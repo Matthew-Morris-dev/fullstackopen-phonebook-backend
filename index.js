@@ -15,19 +15,6 @@ morgan.token("custom", function (req, res) {
 
 app.use(morgan(":method :url :status :res[content-length] - :response-time ms :custom"));
 
-const errorHandler = (error, request, response, next) => {
-    console.error(error.message);
-
-    if (error.name === "CastError") {
-        return response.status(400).send({ error: "malformatted id" });
-    }
-
-    next(error);
-};
-
-// this has to be the last loaded middleware.
-app.use(errorHandler);
-
 app.get("/info", (req, res) => {
     const timeNow = new Date();
     const numberOfPersons = Person.estimatedDocumentCount().then((count) => {
@@ -46,7 +33,7 @@ app.get("/api/persons", (req, res) => {
     });
 });
 
-app.post("/api/persons", (req, res) => {
+app.post("/api/persons", (req, res, next) => {
     const body = req.body;
     if (body.name === null || body.name === undefined) {
         res.status(400).send({ error: `data must contain the field 'name'` });
@@ -70,7 +57,7 @@ app.post("/api/persons", (req, res) => {
         });
 });
 
-app.get("/api/persons/:id", (req, res) => {
+app.get("/api/persons/:id", (req, res, next) => {
     Person.findById(req.params.id)
         .then((person) => {
             res.json(person);
@@ -80,7 +67,7 @@ app.get("/api/persons/:id", (req, res) => {
         });
 });
 
-app.put("/api/persons/:id", (req, res) => {
+app.put("/api/persons/:id", (req, res, next) => {
     Person.findByIdAndUpdate(req.params.id, { number: req.body.number }, { new: true })
         .then((updatedPerson) => {
             res.json(updatedPerson);
@@ -88,7 +75,7 @@ app.put("/api/persons/:id", (req, res) => {
         .catch((error) => next(error));
 });
 
-app.delete("/api/persons/:id", (req, res) => {
+app.delete("/api/persons/:id", (req, res, next) => {
     Person.findByIdAndDelete(req.params.id)
         .then((deletedPerson) => {
             if (deletedPerson) {
@@ -101,6 +88,26 @@ app.delete("/api/persons/:id", (req, res) => {
             next(error);
         });
 });
+
+const unknownEndpoint = (request, response) => {
+    response.status(404).send({ error: "unknown endpoint" });
+};
+
+// handler of requests with unknown endpoint
+app.use(unknownEndpoint);
+
+const errorHandler = (error, req, res, next) => {
+    if (error.name === "CastError") {
+        return resizeTo.status(400).send({ error: "malformatted id" });
+    } else if (error.name === "ValidationError") {
+        return res.status(400).json({ error: error.message });
+    }
+
+    next(error);
+};
+
+// this has to be the last loaded middleware.
+app.use(errorHandler);
 
 PORT = process.env.PORT;
 app.listen(PORT, () => {
